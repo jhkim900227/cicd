@@ -1,0 +1,1193 @@
+Parameters:
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instances. Linked to AWS Parameter
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.  
+
+Resources:
+
+# VPC1 Resource
+# VPC1 & IGW
+  VPC1:
+    Type: AWS::EC2::VPC
+    Properties:
+     CidrBlock: 10.1.0.0/16
+     EnableDnsSupport: true
+     EnableDnsHostnames: true
+     Tags:
+      - Key: Name
+        Value: VPC1-Seoul-AWS
+  VPC1InternetGateway1:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: VPC1-Seoul-AWS-IGW1
+  VPC1InternetGatewayAttachment1:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref VPC1InternetGateway1
+      VpcId: !Ref VPC1
+
+# VPC1 RT Route Subnet
+  VPC1RouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC1
+      Tags:
+        - Key: Name
+          Value: VPC1-Seoul-AWS-VPC1RouteTable1
+  VPC1Route1:
+    Type: AWS::EC2::Route
+    DependsOn: VPC1InternetGatewayAttachment1
+    Properties:
+      RouteTableId: !Ref VPC1RouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref VPC1InternetGateway1
+
+  VPC1Subnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC1
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: 10.1.1.0/24
+      MapPublicIpOnLaunch: True
+      Tags:
+        - Key: Name
+          Value: VPC1-Seoul-AWS-VPC1Subnet1
+          
+  VPC1Subnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref VPC1RouteTable1
+      SubnetId: !Ref VPC1Subnet1
+
+  VPC1Subnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC1
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]
+      CidrBlock: 10.1.2.0/24
+      MapPublicIpOnLaunch: True
+      Tags:
+        - Key: Name
+          Value: VPC1-Seoul-AWS-VPC1Subnet2
+  VPC1Subnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref VPC1RouteTable1
+      SubnetId: !Ref VPC1Subnet2
+
+  VPC1RouteTable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC1
+      Tags:
+        - Key: Name
+          Value: VPC1-Seoul-AWS-VPC1RouteTable2
+  VPCEIP2:
+      Type: AWS::EC2::EIP
+      Properties:
+          Domain: vpc
+  VPC1NatGateway1:  
+    Type: AWS::EC2::NatGateway
+    DependsOn: VPC1InternetGatewayAttachment1
+    Properties: 
+      AllocationId: !GetAtt VPCEIP2.AllocationId
+      SubnetId: !Ref VPC1Subnet2
+      Tags: 
+        - Key: Name
+          Value: VPC1-AWS-NGW1
+          
+  VPC1Route2:
+    Type: AWS::EC2::Route
+    DependsOn: VPC1InternetGatewayAttachment1
+    Properties:
+      RouteTableId: !Ref VPC1RouteTable2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref VPC1NatGateway1          
+
+  VPC1Subnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC1
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: 10.1.3.0/24
+      Tags:
+        - Key: Name
+          Value: VPC1-Seoul-AWS-VPC1Subnet3
+  VPC1Subnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref VPC1RouteTable2
+      SubnetId: !Ref VPC1Subnet3
+
+  VPC1Subnet4:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC1
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]
+      CidrBlock: 10.1.4.0/24
+      Tags:
+        - Key: Name
+          Value: VPC1-Seoul-AWS-VPC1Subnet4
+
+  VPC1Subnet4RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref VPC1RouteTable2
+      SubnetId: !Ref VPC1Subnet4
+
+  VPC1Subnet5:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC1
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: 10.1.5.0/24
+      Tags:
+        - Key: Name
+          Value: VPC1-Seoul-AWS-VPC1Subnet5
+
+  VPC1Subnet5RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref VPC1RouteTable2
+      SubnetId: !Ref VPC1Subnet5         
+          
+  VPC1Subnet6:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC1
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]
+      CidrBlock: 10.1.6.0/24
+      Tags:
+        - Key: Name
+          Value: VPC1-Seoul-AWS-VPC1Subnet6
+
+  VPC1Subnet6RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref VPC1RouteTable2
+      SubnetId: !Ref VPC1Subnet6
+
+  VPC1Subnet7:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC1
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: 10.1.7.0/24
+      Tags:
+        - Key: Name
+          Value: VPC1-Seoul-AWS-VPC1Subnet7
+          
+  VPC1Subnet7RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref VPC1RouteTable2
+      SubnetId: !Ref VPC1Subnet7         
+          
+  VPC1Subnet8:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC1
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]
+      CidrBlock: 10.1.8.0/24
+      Tags:
+        - Key: Name
+          Value: VPC1-Seoul-AWS-VPC1Subnet8
+          
+  VPC1Subnet8RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref VPC1RouteTable2
+      SubnetId: !Ref VPC1Subnet8          
+ 
+  VPC1Subnet9:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC1
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: 10.1.9.0/24
+      Tags:
+        - Key: Name
+          Value: VPC1-Seoul-AWS-VPC1Subnet9
+          
+  VPC1Subnet10:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC1
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]
+      CidrBlock: 10.1.10.0/24
+      Tags:
+        - Key: Name
+          Value: VPC1-Seoul-AWS-VPC1Subnet10
+          
+# VPC1 Instance는 ami로 수동 생성
+
+  VPC1Instance1ENI:
+   Type: AWS::EC2::NetworkInterface
+   Properties:
+       SubnetId: !Ref VPC1Subnet1
+       Description: VPC1Instance1 eth0
+       GroupSet:
+       - !Ref VPC1SG1
+       PrivateIpAddress: 10.1.1.100
+       Tags:
+           - Key: Name
+             Value: VPC1-AWS-Instance1 eth0
+             
+  VPCEIP3:
+      Type: AWS::EC2::EIP
+      Properties:
+          Domain: vpc
+          
+  VPCAssociateEIP3:
+      Type: AWS::EC2::EIPAssociation
+      Properties:
+          AllocationId: !GetAtt VPCEIP3.AllocationId
+          NetworkInterfaceId: !Ref VPC1Instance1ENI
+
+  VPC1Instance1:
+   Type: AWS::EC2::Instance
+   Properties:
+     ImageId: ami-0eb14fe5735c13eb5
+     InstanceType: t2.micro
+     KeyName: !Ref KeyName
+     Tags:
+       - Key: Name
+         Value: AWS-Bastion-Instance1
+     NetworkInterfaces:
+       - NetworkInterfaceId: !Ref VPC1Instance1ENI
+         DeviceIndex: 0
+
+  VPC1SG1:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC1
+      GroupDescription: VPC1-Seoul-AWS-NATInstance-SecurityGroup
+      Tags:
+      - Key : Name
+        Value : VPC1-AWS-Bastion-SecurityGroup
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 0.0.0.0/0
+        
+  VPC1SG2:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC1
+      GroupDescription: VPC1-Seoul-AWS-WebSrv-SecurityGroup
+      Tags:
+      - Key : Name
+        Value : VPC1-Seoul-AWS-WebSrv-SecurityGroup
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 10.0.0.0/8
+      - IpProtocol: tcp
+        FromPort: '80'
+        ToPort: '80'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: icmp
+        FromPort: -1
+        ToPort: -1
+        CidrIp: 0.0.0.0/0
+
+  VPC1SG3:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC1
+      GroupDescription: VPC1-Seoul-AWS-ALB-SecurityGroup
+      Tags:
+      - Key : Name
+        Value : VPC1-Seoul-AWS-ALB-SecurityGroup
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '80'
+        ToPort: '80'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: '443'
+        ToPort: '443'
+        CidrIp: 0.0.0.0/0
+
+  VPC1SG4:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC1
+      GroupDescription: VPC1-Seoul-AWS-Resolver-SG
+      Tags:
+      - Key : Name
+        Value : VPC1-Seoul-AWS-Resolver-SG
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '53'
+        ToPort: '53'
+        CidrIp: 10.0.0.0/8
+      - IpProtocol: udp
+        FromPort: '53'
+        ToPort: '53'
+        CidrIp: 10.0.0.0/8
+      - IpProtocol: icmp
+        FromPort: -1
+        ToPort: -1
+        CidrIp: 0.0.0.0/0
+        
+  VPC1SG5:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC1
+      GroupDescription: VPC1-Seoul-AWS-WASSrv-SecurityGroup
+      Tags:
+      - Key : Name
+        Value : VPC1-Seoul-AWS-WASSrv-SecurityGroup
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 10.0.0.0/8
+      - IpProtocol: tcp
+        FromPort: '8080'
+        ToPort: '8080'
+        CidrIp: 0.0.0.0/0        
+
+# PrivateDNS
+  PrivateDNS1:
+    Type: AWS::Route53::HostedZone
+    DependsOn: VPC1
+    Properties:
+      HostedZoneConfig:
+        Comment: Private hosted zone for awsseoul.internal
+      Name: awsseoul.internal
+      VPCs:
+        - VPCId: !Ref VPC1
+          VPCRegion: ap-northeast-2
+      HostedZoneTags:
+        - Key: Name
+          Value: aws-seoul-internal-domain
+
+# Route53 Resolver
+  InboundResolverEndpoint:
+    Type : AWS::Route53Resolver::ResolverEndpoint
+    Properties :
+      Direction : Inbound
+      IpAddresses :
+        - SubnetId: !Ref VPC1Subnet3
+          Ip: 10.1.3.250
+        - SubnetId: !Ref VPC1Subnet4
+          Ip: 10.1.4.250
+      Name : AWS Inbound Endpoint
+      SecurityGroupIds :
+        - !Ref VPC1SG4
+      Tags :
+        - Key: Name
+          Value: AWSseoulInboundEndpoint
+
+  OutboundResolverEndpoint:
+    Type : AWS::Route53Resolver::ResolverEndpoint
+    Properties :
+      Direction : Outbound
+      IpAddresses :
+        - SubnetId: !Ref VPC1Subnet3
+          Ip: 10.1.3.251
+        - SubnetId: !Ref VPC1Subnet4
+          Ip: 10.1.4.251
+      Name : AWS Outbound Endpoint
+      SecurityGroupIds :
+        - !Ref VPC1SG4
+      Tags :
+        - Key: Name
+          Value: AWSseoulOutboundEndpoint
+
+  ResolverRule1:
+    Type: AWS::Route53Resolver::ResolverRule
+    Properties:
+      RuleType: FORWARD
+      DomainName: idcseoul.internal
+      Name: idc seoul rule
+      ResolverEndpointId: !Ref OutboundResolverEndpoint
+      Tags:
+        - Key: Name
+          Value: idc seoul rule
+      TargetIps:
+        - Ip : 10.2.1.200
+          Port : 53
+  ResolverRule2:
+    Type: AWS::Route53Resolver::ResolverRule
+    Properties:
+      RuleType: FORWARD
+      DomainName: idcsingapore.internal
+      Name: idc singapore rule
+      ResolverEndpointId: !Ref OutboundResolverEndpoint
+      Tags:
+        - Key: Name
+          Value: idc singapore rule
+      TargetIps:
+        - Ip : 10.4.1.200
+          Port : 53
+  ResolverRule3:
+    Type: AWS::Route53Resolver::ResolverRule
+    Properties:
+      RuleType: FORWARD
+      DomainName: awssingapore.internal
+      Name: aws singapore rule
+      ResolverEndpointId: !Ref OutboundResolverEndpoint
+      Tags:
+        - Key: Name
+          Value: aws singapore rule
+      TargetIps:
+        - Ip : 10.3.3.250
+          Port : 53
+        - Ip : 10.3.4.250
+          Port : 53
+
+  ResolverRuleAssociation1:
+    Type: AWS::Route53Resolver::ResolverRuleAssociation
+    Properties:
+      Name: RuleAssociation1
+      ResolverRuleId: !Ref ResolverRule1
+      VPCId: !Ref VPC1
+  ResolverRuleAssociation2:
+    Type: AWS::Route53Resolver::ResolverRuleAssociation
+    Properties:
+      Name: RuleAssociation2
+      ResolverRuleId: !Ref ResolverRule2
+      VPCId: !Ref VPC1
+  ResolverRuleAssociation3:
+    Type: AWS::Route53Resolver::ResolverRuleAssociation
+    Properties:
+      Name: RuleAssociation3
+      ResolverRuleId: !Ref ResolverRule3
+      VPCId: !Ref VPC1
+
+# ALB
+  ALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: application
+      Scheme: internet-facing
+      Name: VPC1-Seoul-AWS-ALB-WEB
+      SecurityGroups:
+        - !Ref VPC1SG3
+      Subnets:
+        - !Ref VPC1Subnet1
+        - !Ref VPC1Subnet2
+
+  ALBTG:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: ALBTG-WEB
+      Port: 80
+      Protocol: HTTP
+      HealthCheckPath: '/HealthCheck.txt'
+      HealthCheckIntervalSeconds: 10
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 3
+      VpcId: !Ref VPC1
+      Tags:
+      - Key : Name
+        Value : VPC1-Seoul-AWS-ALBTG-WEB
+
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ALBTG
+      LoadBalancerArn: !Ref ALB
+      Port: 80
+      Protocol: HTTP
+      
+  ALB2:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: application
+      Scheme: internal
+      Name: VPC1-Seoul-AWS-ALB-WAS
+      SecurityGroups:
+        - !Ref VPC1SG3
+      Subnets:
+        - !Ref VPC1Subnet5
+        - !Ref VPC1Subnet6
+
+  ALBTG2:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: ALBTG-WAS
+      Port: 8080
+      Protocol: HTTP
+      HealthCheckPath: /
+      HealthCheckIntervalSeconds: 10
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 3
+      VpcId: !Ref VPC1
+      Tags:
+      - Key : Name
+        Value : VPC1-Seoul-AWS-ALBTG-WAS
+
+  ALBListener2:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ALBTG2
+      LoadBalancerArn: !Ref ALB2
+      Port: 8080
+      Protocol: HTTP
+      
+########################### asg
+
+  LC:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: ami-0eb14fe5735c13eb5
+      InstanceType: t2.micro
+      InstanceMonitoring: true
+      LaunchConfigurationName: webserverLC
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash
+            (
+            echo "qwe123"
+            echo "qwe123"
+            ) | passwd --stdin root
+            sed -i "s/^PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+            sed -i "s/^#PermitRootLogin yes/PermitRootLogin yes/g" /etc/ssh/sshd_config
+            service sshd restart 
+            systemctl enable nginx
+            systemctl restart nginx 
+            curl -o /opt/pingcheck.sh https://healthchecker-soldesk-200.s3.ap-northeast-2.amazonaws.com/pingcheck.sh
+            chmod +x /opt/pingcheck.sh
+            cat <<EOT>> /etc/crontab
+            */3 * * * * root /opt/pingcheck.sh
+            EOT
+            echo "1" > /var/www/html/HealthCheck.txt
+      SecurityGroups:
+        - !Ref VPC1SG2
+        
+  ASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: webserverASG
+      VPCZoneIdentifier:
+        - !Ref VPC1Subnet3
+        - !Ref VPC1Subnet4
+      Cooldown: 10         
+      LaunchConfigurationName: !Ref LC
+      MaxSize: 4
+      MinSize: 2
+      DesiredCapacity: 2   
+      HealthCheckGracePeriod: 300
+      MaxInstanceLifetime: 2592000 
+      TargetGroupARNs:
+        - !Ref ALBTG
+      NotificationConfiguration:
+        TopicARN:
+          Ref: NotificationTopic
+        NotificationTypes:
+        - autoscaling:EC2_INSTANCE_LAUNCH
+        - autoscaling:EC2_INSTANCE_LAUNCH_ERROR
+        - autoscaling:EC2_INSTANCE_TERMINATE
+        - autoscaling:EC2_INSTANCE_TERMINATE_ERROR
+      Tags:
+        - Key: Name
+          Value: web-asg
+          PropagateAtLaunch: true 
+
+# ㅡㅡㅡㅡ sns ㅡㅡㅡㅡ
+  NotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      Subscription:
+      - Endpoint: "rlagytlr10@naver.com"
+        Protocol: email    
+              
+# ㅡㅡㅡㅡ cloudwatch ㅡㅡㅡㅡ
+  WebServerScaleUpPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName:
+        Ref: ASG
+      Cooldown: '60'
+      ScalingAdjustment: '1'
+  WebServerScaleDownPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName:
+        Ref: ASG
+      Cooldown: '60'
+      ScalingAdjustment: "-1"
+  CPUAlarmHigh:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Scale-up if CPU > 90% for 10 minutes
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: '300'
+      EvaluationPeriods: '2'
+      Threshold: '90'
+      AlarmActions:
+      - Ref: WebServerScaleUpPolicy
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value:
+          Ref: ASG
+      ComparisonOperator: GreaterThanThreshold
+  CPUAlarmLow:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Scale-down if CPU < 70% for 10 minutes
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: '300'
+      EvaluationPeriods: '2'
+      Threshold: '70'
+      AlarmActions:
+      - Ref: WebServerScaleDownPolicy
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value:
+          Ref: ASG
+      ComparisonOperator: LessThanThreshold
+      
+  # LC2:
+    # Type: AWS::AutoScaling::LaunchConfiguration
+    # Properties:
+      # ImageId: ami-0eb14fe5735c13eb5
+      # InstanceType: t2.micro
+      # InstanceMonitoring: true
+      # LaunchConfigurationName: wasserverLC
+      # UserData:
+        # Fn::Base64: |
+        #!/bin/bash
+         # (
+          # echo "qwe123"
+          # echo "qwe123"
+          # ) | passwd --stdin root
+          # sed -i "s/^PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+          # sed -i "s/^#PermitRootLogin yes/PermitRootLogin yes/g" /etc/ssh/sshd_config
+          # service sshd restart 
+          # yum -y update
+          # cd apache-tomcat-10.0.14/bin
+          # ./startup.sh
+      # SecurityGroups:
+        # - !Ref VPC1SG5
+        
+  # ASG2:
+    # Type: AWS::AutoScaling::AutoScalingGroup
+    # Properties:
+      # AutoScalingGroupName: wasserverASG
+      # VPCZoneIdentifier:
+        # - !Ref VPC1Subnet5
+        # - !Ref VPC1Subnet6
+      # Cooldown: 10
+      # LaunchConfigurationName: !Ref LC2
+      # MaxSize: 4
+      # MinSize: 2
+      # DesiredCapacity: 2
+      # TargetGroupARNs:
+        # - !Ref ALBTG2
+      # Tags:
+        # - Key: Name
+          # Value: was-asg
+          # PropagateAtLaunch: true
+
+# VPC1 EIP1
+  VPCEIP1:
+    Type: AWS::EC2::EIP
+    Properties:
+        Domain: vpc1
+
+# TGW
+  TransitGateway1:
+    Type: AWS::EC2::TransitGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: TGW1
+  VPCAssociateEIP1:
+      Type: AWS::EC2::EIPAssociation
+      Properties:
+          AllocationId: !GetAtt VPCEIP1.AllocationId
+          NetworkInterfaceId: !Ref Instance1ENIEth0
+          
+  TransitGatewayAtt1:
+    Type: AWS::EC2::TransitGatewayAttachment
+    DependsOn: VPC1
+    Properties:
+      VpcId: !Ref VPC1
+      SubnetIds:
+      - !Ref VPC1Subnet9
+      - !Ref VPC1Subnet10
+      TransitGatewayId: !Ref TransitGateway1
+      Tags:
+        - Key: Name
+          Value: TGW1-ATT1-VPC1
+
+  VPC1Route4:
+    Type: AWS::EC2::Route
+    DependsOn: TransitGatewayAtt1
+    Properties:
+      RouteTableId: !Ref VPC1RouteTable2
+      DestinationCidrBlock: 10.0.0.0/8
+      TransitGatewayId: !Ref TransitGateway1
+
+  VPC1Route5:
+    Type: AWS::EC2::Route
+    DependsOn: TransitGatewayAtt1
+    Properties:
+      RouteTableId: !Ref VPC1RouteTable1
+      DestinationCidrBlock: 10.0.0.0/8
+      TransitGatewayId: !Ref TransitGateway1
+
+  VPC1CGW:
+    Type: "AWS::EC2::CustomerGateway"
+    DependsOn: VPCEIP1
+    Properties:
+        Type: ipsec.1
+        BgpAsn: 65000
+        IpAddress:
+            Ref: VPCEIP1
+        Tags:
+          - Key: Name
+            Value: VPC1-Seoul-AWS-CGW
+
+  VPC1AWSVpnConnection:
+    Type: "AWS::EC2::VPNConnection"
+    Properties:
+        Type: ipsec.1
+        StaticRoutesOnly: true
+        CustomerGatewayId:
+            !Ref VPC1CGW
+        TransitGatewayId:
+            !Ref TransitGateway1
+        VpnTunnelOptionsSpecifications:
+            - PreSharedKey: cloudneta
+        Tags:
+            - Key: Name
+              Value: VPC1-Seoul-AWS-VPNConnection-IDC
+              
+  # TGWStacticRoute:
+    # Type: AWS::EC2::TransitGatewayRoute
+    # Properties:
+      # DestinationCidrBlock: 10.1.0.0/16
+      # 기본 transitgateway 라우팅테이블ID
+      # TransitGatewayRouteTableId: tgw-rtb-03a751722ec1131c1
+      # Peering 연결시 생성된 transitgateway 연결ID      
+      # TransitGatewayAttachmentId: tgw-attach-0c1d97a981b31d05f
+
+  # SeoulSingaporePeering:
+    # Type: AWS::EC2::TransitGatewayPeeringAttachment
+    # Properties: 
+      # PeerAccountId: 521714266682
+      # PeerRegion: ap-southeast-1
+      # PeerTransitGatewayId: tgw-0c667e24398d4bb10 #싱가폴에있는 트렌짓게이트웨이 id 
+      # Tags: 
+        # - Key: Name
+          # Value: Seoul-Singapore-TGW-Peering
+      # TransitGatewayId: !Ref TransitGateway1
+
+  MyDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBName: test
+      AllocatedStorage: '5'
+      DBInstanceClass: db.t2.small
+      Engine: MySQL
+      EngineVersion: 8.0.25
+      MasterUsername: test
+      MasterUserPassword: password
+      DBSubnetGroupName:
+        Ref: myDBSubnetGroup
+        
+  myDBSubnetGroup: 
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties: 
+      DBSubnetGroupDescription: description
+      SubnetIds: 
+        - !Ref VPC1Subnet8
+        - !Ref VPC1Subnet7
+      Tags: 
+        - Key: Name
+          Value: DB-Tier
+
+  ReplicaDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      SourceDBInstanceIdentifier:
+        Ref: MyDB
+      DBInstanceClass: db.t2.small
+      Tags:
+      - Key: Name
+        Value: Read Replica Database
+
+
+
+# VPC2 Resource
+# VPC2 & IGW
+  VPC2:
+    Type: AWS::EC2::VPC
+    Properties:
+     CidrBlock: 10.2.0.0/16
+     EnableDnsSupport: false
+     EnableDnsHostnames: false
+     Tags:
+      - Key: Name
+        Value: VPC2-Seoul-IDC
+
+  VPC2InternetGateway1:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: VPC2-Seoul-IDC-IGW1
+  VPC2InternetGatewayAttachment1:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref VPC2InternetGateway1
+      VpcId: !Ref VPC2
+
+# VPC2 RT Route Subnet
+  VPC2RouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC2
+      Tags:
+        - Key: Name
+          Value: VPC2-Seoul-IDC-VPC2RouteTable1
+  VPC2Route1:
+    Type: AWS::EC2::Route
+    DependsOn: VPC2InternetGatewayAttachment1
+    Properties:
+      RouteTableId: !Ref VPC2RouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref VPC2InternetGateway1
+
+  VPC2Subnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC2
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: 10.2.1.0/24
+      MapPublicIpOnLaunch: True
+      Tags:
+        - Key: Name
+          Value: VPC2-Seoul-IDC-VPC2Subnet1
+  VPC2Subnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref VPC2RouteTable1
+      SubnetId: !Ref VPC2Subnet1
+
+  VPC2Route2:
+    Type: AWS::EC2::Route
+    DependsOn: VPC2Instance1
+    Properties:
+      RouteTableId: !Ref VPC2RouteTable1
+      DestinationCidrBlock: 10.0.0.0/8
+      InstanceId: !Ref VPC2Instance1
+
+  VPC2Instance1ENI:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+        SubnetId: !Ref VPC2Subnet1
+        Description: Instance1 eth0
+        GroupSet:
+        - !Ref VPC2SG1
+        PrivateIpAddress: 10.2.1.240
+        SourceDestCheck: false
+        Tags:
+            - Key: Name
+              Value: VPC2-Seoul-IDC Instance1 eth0
+
+  VPCAssociateEIP1:
+      Type: AWS::EC2::EIPAssociation
+      Properties:
+          AllocationId: !GetAtt VPCEIP1.AllocationId
+          NetworkInterfaceId: !Ref VPC2Instance1ENI
+
+# Instance
+  VPC2Instance1:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0eb14fe5735c13eb5
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      Tags:
+        - Key: Name
+          Value: Seoul-IDC-CGW
+      NetworkInterfaces:
+        - NetworkInterfaceId: !Ref VPC2Instance1ENI
+          DeviceIndex: 0
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          yum -y install tcpdump openswan
+          cat <<EOF>> /etc/sysctl.conf
+          net.ipv4.ip_forward=1
+          net.ipv4.conf.all.accept_redirects = 0
+          net.ipv4.conf.all.send_redirects = 0
+          net.ipv4.conf.default.send_redirects = 0
+          net.ipv4.conf.eth0.send_redirects = 0
+          net.ipv4.conf.default.accept_redirects = 0
+          net.ipv4.conf.eth0.accept_redirects = 0
+          net.ipv4.conf.ip_vti0.rp_filter = 0
+          net.ipv4.conf.eth0.rp_filter = 0
+          net.ipv4.conf.default.rp_filter = 0
+          net.ipv4.conf.all.rp_filter = 0
+          net.ipv4.conf.default.accept_source_route = 0
+          EOF
+          sysctl -p /etc/sysctl.conf
+          curl -o /etc/ipsec.d/vpnconfig.sh https://cloudneta-book.s3.ap-northeast-2.amazonaws.com/chapter8/8_lab_vpnconfig_seoul.sh
+          chmod +x /etc/ipsec.d/vpnconfig.sh
+
+  VPC2Instance2:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0eb14fe5735c13eb5
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      Tags:
+        - Key: Name
+          Value: Seoul-IDC-DB
+      NetworkInterfaces:
+        - DeviceIndex: 0
+          SubnetId: !Ref VPC2Subnet1
+          GroupSet:
+          - !Ref VPC2SG2
+          PrivateIpAddress: 10.2.1.100
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          hostnamectl --static set-hostname Seoul-IDC-DB
+          yum install -y mariadb-server mariadb lynx
+          systemctl start mariadb && systemctl enable mariadb
+          echo -e "\n\nqwe123\nqwe123\ny\ny\ny\ny\n" | /usr/bin/mysql_secure_installation
+          mysql -uroot -pqwe123 -e "CREATE DATABASE sample; GRANT ALL PRIVILEGES ON *.* TO 'gasida'@'%' IDENTIFIED BY 'qwe123'; GRANT REPLICATION SLAVE ON *.* TO 'repl_user'@'%' IDENTIFIED BY 'qwe123'; flush privileges;"
+          mysql -uroot -pqwe123 -e "USE sample;CREATE TABLE EMPLOYEES (ID int(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,NAME VARCHAR(45),ADDRESS VARCHAR(90));"
+          cat <<EOT> /etc/my.cnf
+          [mysqld]
+          datadir=/var/lib/mysql
+          socket=/var/lib/mysql/mysql.sock
+          symbolic-links=0        
+          #아래부분만 추가할것         
+          log-bin=mysql-bin
+          server-id=1
+          [mysqld_safe]
+          log-error=/var/log/mariadb/mariadb.log
+          pid-file=/var/run/mariadb/mariadb.pid
+          !includedir /etc/my.cnf.d
+          EOT
+          systemctl restart mariadb
+          cat <<EOT> /home/ec2-user/list.txt
+          10.1.3.100
+          websrv1.awsseoul.internal
+          10.1.4.100
+          websrv2.awsseoul.internal
+          10.2.1.100
+          dbsrv.idcseoul.internal
+          10.2.1.200
+          dnssrv.idcseoul.internal
+          10.3.3.100
+          websrv1.awssingapore.internal
+          10.4.1.100
+          dbsrv.idcsingapore.internal
+          10.4.1.200
+          dnssrv.idcsingapore.internal
+          EOT
+          curl -o /home/ec2-user/pingall.sh https://cloudneta-book.s3.ap-northeast-2.amazonaws.com/chapter6/pingall.sh --silent
+          chmod +x /home/ec2-user/pingall.sh
+
+  VPC2Instance3:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0eb14fe5735c13eb5
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      Tags:
+        - Key: Name
+          Value: Seoul-IDC-DNSSRV
+      NetworkInterfaces:
+        - DeviceIndex: 0
+          SubnetId: !Ref VPC2Subnet1
+          GroupSet:
+          - !Ref VPC2SG3
+          PrivateIpAddress: 10.2.1.200
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          hostnamectl --static set-hostname Seoul-IDC-DNSSRV
+          sed -i "s/^127.0.0.1 localhost/127.0.0.1 localhost VPC2-Seoul-IDC-DNSSRV/g" /etc/hosts
+          apt-get update -y
+          apt-get install bind9 bind9-doc language-pack-ko -y
+          # named.conf.options
+          cat <<EOF> /etc/bind/named.conf.options
+          options {
+             directory "/var/cache/bind";
+             recursion yes;
+             allow-query { any; };
+             forwarders {
+                   8.8.8.8;
+                    };
+              forward only;
+              auth-nxdomain no;
+          };
+          zone "awsseoul.internal" {
+              type forward;
+              forward only;
+              forwarders { 10.1.3.250; 10.1.4.250; };
+          };
+          zone "awssingapore.internal" {
+              type forward;
+              forward only;
+              forwarders { 10.3.3.250; 10.3.4.250; };
+          };
+          zone "idcsingapore.internal" {
+              type forward;
+              forward only;
+              forwarders { 10.4.1.200; };
+          };
+          EOF
+
+          # named.conf.local
+          cat <<EOF> /etc/bind/named.conf.local
+          zone "idcseoul.internal" {
+              type master;
+              file "/etc/bind/db.idcseoul.internal"; # zone file path
+          };
+
+          zone "2.10.in-addr.arpa" {
+              type master;
+              file "/etc/bind/db.10.2";  # 10.2.0.0/16 subnet
+          };
+          EOF
+
+          # db.idcseoul.internal
+          cat <<EOF> /etc/bind/db.idcseoul.internal
+          \$TTL 30
+          @ IN SOA idcseoul.internal. root.idcseoul.internal. (
+            2019122114 ; serial
+            3600       ; refresh
+            900        ; retry
+            604800     ; expire
+            86400      ; minimum ttl
+          )
+
+          ; dns server
+          @      IN NS ns1.idcseoul.internal.
+
+          ; ip address of dns server
+          ns1    IN A  10.2.1.200
+
+          ; Hosts
+          dbsrv   IN A  10.2.1.100
+          dnssrv   IN A  10.2.1.200
+          EOF
+          # db.10.2
+          cat <<EOF> /etc/bind/db.10.2
+          \$TTL 30
+          @ IN SOA idcseoul.internal. root.idcseoul.internal. (
+            2019122114 ; serial
+            3600       ; refresh
+            900        ; retry
+            604800     ; expire
+            86400      ; minimum ttl
+          )
+
+          ; dns server
+          @      IN NS ns1.idcseoul.internal.
+
+          ; ip address of dns server
+          3      IN PTR  ns1.idcseoul.internal.
+
+          ; A Record list
+          100.1    IN PTR  dbsrv.idcseoul.internal.
+          200.1    IN PTR  dnssrv.idcseoul.internal.
+          EOF
+          # bind9 service start
+          systemctl start bind9 && systemctl enable bind9
+
+  VPC2SG1:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC2
+      GroupDescription: VPC2-Seoul-IDC-CGWInstance-SG
+      Tags:
+      - Key : Name
+        Value : VPC2-Seoul-IDC-CGWInstance-SG
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: udp
+        FromPort: '500'
+        ToPort: '500'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: udp
+        FromPort: '4500'
+        ToPort: '4500'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: '-1'
+        CidrIp: 10.0.0.0/8
+      - IpProtocol: icmp
+        FromPort: -1
+        ToPort: -1
+        CidrIp: 0.0.0.0/0
+
+  VPC2SG2:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC2
+      GroupDescription: VPC2-Seoul-IDC-DB-SG
+      Tags:
+      - Key : Name
+        Value : VPC2-Seoul-IDC-DB-SG
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: '3306'
+        ToPort: '3306'
+        CidrIp: 10.0.0.0/8
+      - IpProtocol: icmp
+        FromPort: -1
+        ToPort: -1
+        CidrIp: 0.0.0.0/0
+
+  VPC2SG3:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC2
+      GroupDescription: VPC2-Seoul-IDC-DNSSRV-SG
+      Tags:
+      - Key : Name
+        Value : VPC2-Seoul-IDC-DNSSRV-SG
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: udp
+        FromPort: '53'
+        ToPort: '53'
+        CidrIp: 10.0.0.0/8
+      - IpProtocol: tcp
+        FromPort: '53'
+        ToPort: '53'
+        CidrIp: 10.0.0.0/8
+      - IpProtocol: icmp
+        FromPort: -1
+        ToPort: -1
+        CidrIp: 0.0.0.0/0
+
